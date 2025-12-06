@@ -162,6 +162,8 @@ add_employee (struct dbheader_t *header, struct employee_t **employees,
 {
     if (NULL == header)
         return STATUS_ERROR;
+    if (header->count < 0)
+        return STATUS_ERROR;
     if (NULL == employees)
         return STATUS_ERROR;
     if (NULL == *employees)

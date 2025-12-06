@@ -20,15 +20,14 @@ print_usage (char **argv)
 int
 main (int argc, char *argv[])
 {
+    int c;
+    int dbfd = -1;
     bool newfile = false;
     bool list = false;
     char *filepath = NULL;
     char *addstring = NULL;
-    int c;
     struct dbheader_t *dbheader = NULL;
     struct employee_t *employees = NULL;
-
-    int dbfd = -1;
 
     while ((c = getopt (argc, argv, "nf:a:l")) != -1)
         {

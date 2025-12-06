@@ -157,10 +157,10 @@ read_employees (int fd, struct dbheader_t *header,
 }
 
 int
-add_employee (struct dbheader_t *dbheader, struct employee_t **employees,
+add_employee (struct dbheader_t *header, struct employee_t **employees,
               char *addstring)
 {
-    if (NULL == dbheader)
+    if (NULL == header)
         return STATUS_ERROR;
     if (NULL == employees)
         return STATUS_ERROR;
@@ -182,20 +182,20 @@ add_employee (struct dbheader_t *dbheader, struct employee_t **employees,
         return STATUS_ERROR;
 
     struct employee_t *e = *employees;
-    e = realloc (e, sizeof (struct employee_t) * dbheader->count + 1);
+    e = realloc (e, sizeof (struct employee_t) * header->count + 1);
     if (e == NULL)
         {
             return STATUS_ERROR;
         }
 
-    dbheader->count++;
+    header->count++;
 
-    strncpy (e[dbheader->count - 1].name, name,
-             sizeof (e[dbheader->count - 1].name) - 1);
-    strncpy (e[dbheader->count - 1].address, addr,
-             sizeof (e[dbheader->count - 1].address) - 1);
+    strncpy (e[header->count - 1].name, name,
+             sizeof (e[header->count - 1].name) - 1);
+    strncpy (e[header->count - 1].address, addr,
+             sizeof (e[header->count - 1].address) - 1);
 
-    e[dbheader->count - 1].hours = atoi (hours);
+    e[header->count - 1].hours = atoi (hours);
 
     *employees = e;
 

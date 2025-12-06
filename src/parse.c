@@ -57,7 +57,7 @@ validate_db_header (int fd, struct dbheader_t **headerOut)
         }
 
     header->version = ntohs (header->version);
-    header->count = ntohs (header->count);
+    header->count = ntohl (header->count);
     header->magic = ntohl (header->magic);
     header->filesize = ntohl (header->filesize);
 
@@ -106,7 +106,7 @@ output_file (int fd, struct dbheader_t *header, struct employee_t *employees)
     header->magic = htonl (header->magic);
     header->filesize = htonl (sizeof (struct dbheader_t)
                               + (sizeof (struct employee_t) * realcount));
-    header->count = htons (header->count);
+    header->count = htonl (header->count);
     header->version = htons (header->version);
 
     lseek (fd, 0, SEEK_SET);

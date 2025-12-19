@@ -12,6 +12,24 @@
 #include "parse.h"
 
 int
+find_employee_by_name (struct employee_t *employees, int size, char *search)
+{
+
+    if (size == 0)
+        return -1;
+
+    for (int i = 0; i < size; i++)
+        {
+            if (strcmp (employees[i].name, search) == 0)
+                {
+                    return i;
+                }
+        }
+
+    return -1;
+}
+
+int
 create_db_header (struct dbheader_t **headerOut)
 {
     struct dbheader_t *header = calloc (1, sizeof (struct dbheader_t));
@@ -56,14 +74,15 @@ validate_db_header (int fd, struct dbheader_t **headerOut)
             return STATUS_ERROR;
         }
 
-    header->version = ntohs (header->version);
-    header->count = ntohs (header->count);
     header->magic = ntohl (header->magic);
     header->filesize = ntohl (header->filesize);
+    header->count = ntohs (header->count);
+    header->version = ntohs (header->version);
 
     if (header->magic != HEADER_MAGIC)
         {
-            puts ("Improper header magic");
+            printf ("Improper header magic. Got %i. Expected: %i\n",
+                    header->magic, HEADER_MAGIC);
             free (header);
 
             return STATUS_ERROR;
@@ -120,6 +139,9 @@ output_file (int fd, struct dbheader_t *header, struct employee_t *employees)
             write (fd, &employees[i], sizeof (struct employee_t));
         }
 
+    ftruncate (fd, sizeof (struct dbheader_t)
+                       + (sizeof (struct employee_t) * realcount));
+
     return STATUS_SUCCESS;
 }
 
@@ -162,8 +184,6 @@ add_employee (struct dbheader_t *header, struct employee_t **employees,
 {
     if (NULL == header)
         return STATUS_ERROR;
-    if (header->count < 0)
-        return STATUS_ERROR;
     if (NULL == employees)
         return STATUS_ERROR;
     if (NULL == *employees)
@@ -184,18 +204,19 @@ add_employee (struct dbheader_t *header, struct employee_t **employees,
         return STATUS_ERROR;
 
     struct employee_t *e = *employees;
-    e = realloc (e, sizeof (struct employee_t) * header->count + 1);
+
+    header->count++;
+    e = realloc (e, header->count * (sizeof (struct employee_t)));
+
     if (e == NULL)
         {
             return STATUS_ERROR;
         }
 
-    header->count++;
-
     strncpy (e[header->count - 1].name, name,
-             sizeof (e[header->count - 1].name) - 1);
+             (sizeof (e[header->count - 1].name) - 1));
     strncpy (e[header->count - 1].address, addr,
-             sizeof (e[header->count - 1].address) - 1);
+             (sizeof (e[header->count - 1].address) - 1));
 
     e[header->count - 1].hours = atoi (hours);
 
@@ -208,7 +229,13 @@ void
 list_employees (struct dbheader_t *dbheader, struct employee_t *employees)
 {
     int i = 0;
-    puts ("=== List of employees ===");
+
+    if (dbheader->count == 0)
+        {
+            puts ("No employee found.");
+            return;
+        }
+
     for (; i < dbheader->count; i++)
         {
             printf ("Employee %i\n", i);
@@ -216,4 +243,47 @@ list_employees (struct dbheader_t *dbheader, struct employee_t *employees)
             printf ("\tAddress: %s\n", employees[i].address);
             printf ("\tHours: %i\n", employees[i].hours);
         }
+}
+
+int
+remove_employee (struct dbheader_t *header, struct employee_t **employees,
+                 char *name)
+{
+    if (NULL == header)
+        return STATUS_ERROR;
+    if (NULL == employees)
+        return STATUS_ERROR;
+    if (NULL == *employees)
+        return STATUS_ERROR;
+    if (NULL == name)
+        return STATUS_ERROR;
+
+    int remove_pos = find_employee_by_name (*employees, header->count, name);
+
+    if (remove_pos == -1)
+        {
+            printf ("Could not find an employee with name %s.\n", name);
+            return STATUS_ERROR;
+        }
+
+    int currentcount = header->count;
+    header->count--;
+
+    struct employee_t *e = calloc (header->count, sizeof (struct employee_t));
+    if (e == NULL)
+        {
+            return STATUS_ERROR;
+        }
+
+    int insert_pos = 0;
+
+    for (int i = 0; i < currentcount; i++)
+        {
+            if (i != remove_pos)
+                e[insert_pos++] = (*employees)[i];
+        }
+
+    *employees = e;
+
+    return STATUS_SUCCESS;
 }

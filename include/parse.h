@@ -35,7 +35,8 @@ int add_employee (struct dbheader_t *dbheader, struct employee_t **employees,
 void list_employees (struct dbheader_t *dbheader,
                      struct employee_t *employees);
 
-// remove employee by name
+int remove_employee (struct dbheader_t *dbheader,
+                     struct employee_t **employees, char *name);
 // update employee hours by name
 
 #endif

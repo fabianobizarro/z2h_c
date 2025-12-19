@@ -287,3 +287,52 @@ remove_employee (struct dbheader_t *header, struct employee_t **employees,
 
     return STATUS_SUCCESS;
 }
+
+int
+update_employee (struct dbheader_t *header, struct employee_t **employees,
+                 char *updatestring)
+{
+    if (NULL == header)
+        return STATUS_ERROR;
+    if (NULL == employees)
+        return STATUS_ERROR;
+    if (NULL == *employees)
+        return STATUS_ERROR;
+    if (NULL == updatestring)
+        return STATUS_ERROR;
+
+    char *name = strtok (updatestring, ",");
+    if (name == NULL)
+        return STATUS_ERROR;
+
+    char *newname = strtok (NULL, ",");
+    if (newname == NULL)
+        return STATUS_ERROR;
+
+    char *addr = strtok (NULL, ",");
+    if (addr == NULL)
+        return STATUS_ERROR;
+
+    char *hours = strtok (NULL, ",");
+    if (hours == NULL)
+        return STATUS_ERROR;
+
+    int update_pos = find_employee_by_name (*employees, header->count, name);
+
+    if (update_pos == -1)
+        {
+            printf ("Could not find an employee with name %s.\n", name);
+            return STATUS_ERROR;
+        }
+
+    struct employee_t *e = *employees;
+
+    strncpy (e[update_pos].name, newname, (sizeof (e[update_pos].name) - 1));
+    strncpy (e[update_pos].address, addr,
+             (sizeof (e[update_pos].address) - 1));
+    e[update_pos].hours = atoi (hours);
+
+    *employees = e;
+
+    return STATUS_SUCCESS;
+}

@@ -14,8 +14,10 @@ print_usage (char **argv)
     puts ("\t -n - create new database file");
     puts ("\t -f - (required) path to database file");
     puts ("\t -l - list the empployees");
-    puts ("\t -a - add cia CSV of (name,address,hours)");
+    puts ("\t -a - add via CSV of (name,address,hours)");
     puts ("\t -d - delete an employee by name");
+    puts ("\t -u - update an employee record (format: "
+          "name,newname,address,hours)");
 }
 
 int
@@ -27,11 +29,12 @@ main (int argc, char *argv[])
     bool list = false;
     char *filepath = NULL;
     char *addstring = NULL;
+    char *updatestring = NULL;
     char *deletestring = NULL;
     struct dbheader_t *dbheader = NULL;
     struct employee_t *employees = NULL;
 
-    while ((c = getopt (argc, argv, "nf:a:ld:")) != -1)
+    while ((c = getopt (argc, argv, "nf:a:ld:u:")) != -1)
         {
             switch (c)
                 {
@@ -49,6 +52,9 @@ main (int argc, char *argv[])
                     break;
                 case 'd':
                     deletestring = optarg;
+                    break;
+                case 'u':
+                    updatestring = optarg;
                     break;
                 case '?':
                     printf ("Unknown options -%c\n", c);
@@ -105,7 +111,6 @@ main (int argc, char *argv[])
 
     if (addstring)
         {
-            printf ("before addind emp - magic: %i\n", dbheader->magic);
             if (add_employee (dbheader, &employees, addstring)
                 != STATUS_SUCCESS)
                 {
@@ -119,14 +124,18 @@ main (int argc, char *argv[])
         {
             if (remove_employee (dbheader, &employees, deletestring)
                 != STATUS_SUCCESS)
-                {
-                    puts ("Failed to remove the employee");
-                }
+                puts ("Failed to remove the employee");
             else
-                {
-                    printf ("Employee %s removed successfully.\n",
-                            deletestring);
-                }
+                printf ("Employee %s removed successfully.\n", deletestring);
+        }
+
+    if (updatestring)
+        {
+            if (update_employee (dbheader, &employees, updatestring)
+                != STATUS_SUCCESS)
+                puts ("Failed to update the employee");
+            else
+                printf ("Employee updated successfully.\n");
         }
 
     if (list)
